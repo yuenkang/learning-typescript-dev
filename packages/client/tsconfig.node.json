@@ -1,0 +1,44 @@
+// 📖 ==========================================
+// 📖 tsconfig.node.json — Node.js 工具文件的 TS 配置
+// 📖 ==========================================
+// 这个配置给 vite.config.ts 等"在 Node.js 中运行"的配置文件用的。
+// 注意和 tsconfig.app.json 的区别：
+//   - 这里没有 DOM 类型（因为不在浏览器运行）
+//   - 这里有 Node 类型（process、__dirname 等）
+{
+  "compilerOptions": {
+    // 增量编译缓存
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    // 目标和类型库：只有 ES2023，没有 DOM
+    // 📖 因为 vite.config.ts 运行在 Node.js 环境，不需要浏览器类型
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "ESNext",
+    // types: ["node"] — 引入 Node.js 类型（process、Buffer 等）
+    "types": [
+      "node"
+    ],
+    "skipLibCheck": true,
+    // ---------- 打包模式 ----------
+    // 和 tsconfig.app.json 一样，模块解析交给 Vite
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    // ---------- 代码检查 ----------
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  // 📖 注意：只包含 vite.config.ts
+  // 和 tsconfig.app.json 的 "include": ["src"] 互不重叠
+  "include": [
+    "vite.config.ts"
+  ]
+}

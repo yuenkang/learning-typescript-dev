@@ -1,0 +1,38 @@
+{
+    "compilerOptions": {
+        /* ============================================
+     * 📖 TypeScript 学习笔记：tsconfig 配置详解
+     * ============================================
+     * 这是所有子项目共享的基础 TS 配置。
+     * 每个子项目的 tsconfig.json 会继承（extends）这个文件，
+     * 然后根据自己的需要覆盖或添加配置。
+     */
+        // ---------- 类型检查（Type Checking）----------
+        // strict: true 开启所有严格类型检查，这是学习 TS 的最佳实践
+        // 它包含了 strictNullChecks、noImplicitAny 等多个选项
+        "strict": true,
+        // ---------- 编译目标（Compilation Target）----------
+        // target: 编译后的 JS 版本。ES2022 支持 top-level await 等现代语法
+        "target": "ES2022",
+        // module: 模块系统。Node16 同时支持 CommonJS 和 ESM
+        "module": "Node16",
+        // moduleResolution: 模块查找策略，配合 module: Node16 使用
+        "moduleResolution": "Node16",
+        // ---------- 输出配置（Output）----------
+        // declaration: 生成 .d.ts 类型声明文件，让其他包能使用类型
+        "declaration": true,
+        // sourceMap: 生成 .map 文件，方便调试时定位到 TS 源码
+        "sourceMap": true,
+        // ---------- 互操作性（Interop）----------
+        // esModuleInterop: 让 CommonJS 和 ESM 模块能更好地互相引用
+        // 例如：import express from 'express' 而不是 import * as express from 'express'
+        "esModuleInterop": true,
+        // forceConsistentCasingInFileNames: 强制文件名大小写一致（Mac/Windows 文件系统不区分大小写）
+        "forceConsistentCasingInFileNames": true,
+        // ---------- 其他 ----------
+        // skipLibCheck: 跳过 node_modules 中 .d.ts 文件的类型检查，加快编译速度
+        "skipLibCheck": true,
+        // resolveJsonModule: 允许 import JSON 文件
+        "resolveJsonModule": true
+    }
+}

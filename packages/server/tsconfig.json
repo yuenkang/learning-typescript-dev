@@ -1,0 +1,29 @@
+// 📖 ==========================================
+// 📖 server/tsconfig.json 配置说明
+// 📖 ==========================================
+// 这是后端项目的 TypeScript 配置文件。
+// tsconfig.json 告诉 TypeScript 编译器"怎么编译这个项目"。
+//
+// 📖 学习点：tsconfig 继承机制
+// "extends" 可以继承另一个配置文件，避免重复配置。
+// 子项目只需要写"自己特有的"配置，公共部分全部继承自 base。
+{
+    // 继承根目录的共享配置（strict、target、module 等）
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        // outDir: 编译输出目录
+        // TS 源码（.ts）编译后的 JS 文件（.js）会放到这里
+        // 运行 `npm run build` 后，dist/ 目录会出现编译结果
+        "outDir": "./dist",
+        // rootDir: 源码根目录
+        // 告诉 TS"源码文件在 src/ 目录下"
+        // 编译结果的目录结构会和 src/ 保持一致
+        "rootDir": "./src"
+    },
+    // include: 指定哪些文件需要编译
+    // "src/**/*" 表示 src 目录下的所有文件（递归子目录）
+    // ** 匹配任意层级的目录，* 匹配任意文件名
+    "include": [
+        "src/**/*"
+    ]
+}

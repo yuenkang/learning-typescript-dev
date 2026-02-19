@@ -1,0 +1,83 @@
+// 📖 ==========================================
+// 📖 tsconfig.app.json — React 应用源码的 TS 配置
+// 📖 ==========================================
+// 这个配置专门给 src/ 下的 React 代码用。
+// 这些代码最终运行在浏览器中，所以需要 DOM 相关类型。
+{
+  "compilerOptions": {
+    // ---------- 构建缓存 ----------
+    // tsBuildInfoFile: 增量编译缓存文件的存放位置
+    // 📖 学习点：增量编译 - TS 编译器会记录上次编译结果，
+    // 下次只编译修改过的文件，大幅提升编译速度
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    // ---------- 编译目标 ----------
+    // target: 编译成 ES2022 版本的 JS
+    "target": "ES2022",
+    // useDefineForClassFields: 使用标准的 class 字段定义方式
+    // 📖 学习点：这是 ECMAScript 2022 的标准行为，
+    // 确保 class 中的属性用 Object.defineProperty 定义
+    "useDefineForClassFields": true,
+    // lib: 指定可用的类型库
+    // 📖 学习点：
+    //   - "ES2022" → JS 标准库类型（Array、Promise、Map 等）
+    //   - "DOM"    → 浏览器 DOM 类型（document、window、HTMLElement 等）
+    //   - "DOM.Iterable" → DOM 集合的迭代器类型（NodeList.forEach 等）
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    // module: 使用 ESNext 模块系统（import/export）
+    "module": "ESNext",
+    // types: 额外引入的类型声明
+    // 📖 学习点："vite/client" 为 Vite 特有功能提供类型，例如：
+    //   - import.meta.env（环境变量）
+    //   - import 图片、CSS 等非 JS 文件的类型声明
+    "types": [
+      "vite/client"
+    ],
+    // 跳过 node_modules 中 .d.ts 的类型检查（加速编译）
+    "skipLibCheck": true,
+    // ---------- 打包模式（Bundler Mode）----------
+    // 📖 学习点：因为 Vite 会帮我们打包，
+    // 所以 TS 不需要自己处理模块，只做类型检查就够了
+    // moduleResolution: "bundler" — 模块解析交给 Vite 处理
+    // 📖 这是 Vite 项目推荐的设置，支持更灵活的模块导入
+    "moduleResolution": "bundler",
+    // 允许导入 .ts/.tsx 扩展名的文件（因为有打包工具处理）
+    "allowImportingTsExtensions": true,
+    // 📖 学习点：verbatimModuleSyntax
+    // 强制使用 `import type` 来导入类型
+    // 这样打包工具能更好地做 tree-shaking（去除无用代码）
+    // 例如：import type { Bookmark } from '@bookmark/shared'
+    //       ↑ 加了 type 关键字，打包时会被完全移除
+    "verbatimModuleSyntax": true,
+    // 把每个文件都当作独立模块（即使没有 import/export）
+    "moduleDetection": "force",
+    // noEmit: 不输出编译结果（Vite 来处理编译和打包，TS 只做类型检查）
+    "noEmit": true,
+    // jsx: "react-jsx" — 使用 React 17+ 的新 JSX 转换
+    // 📖 学习点：这样就不用每个文件都写 import React from 'react' 了
+    "jsx": "react-jsx",
+    // ---------- 代码检查（Linting）----------
+    // strict: 开启所有严格类型检查
+    "strict": true,
+    // 📖 以下选项帮你写出更干净的代码：
+    // 不允许声明了但没用到的变量
+    "noUnusedLocals": true,
+    // 不允许声明了但没用到的函数参数
+    "noUnusedParameters": true,
+    // 📖 学习点：erasableSyntaxOnly
+    // 只允许可以被直接"擦除"的 TS 语法（如类型注解）
+    // 不允许需要运行时支持的语法（如 enum 的某些用法）
+    "erasableSyntaxOnly": true,
+    // switch 语句中不允许 case 穿透（忘记写 break）
+    "noFallthroughCasesInSwitch": true,
+    // 确保副作用导入（如 import './style.css'）不会被意外忽略
+    "noUncheckedSideEffectImports": true
+  },
+  // 只检查 src/ 目录下的文件
+  "include": [
+    "src"
+  ]
+}

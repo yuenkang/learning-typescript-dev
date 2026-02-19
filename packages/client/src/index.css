@@ -1,0 +1,12 @@
+/* 📖 学习点：Tailwind CSS v4 的引入方式
+ * Tailwind v4 使用 CSS 原生的 @import 语法引入
+ * 不再需要 tailwind.config.js 配置文件（v3 需要）
+ */
+@import "tailwindcss";
+
+/* 全局基础样式 */
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

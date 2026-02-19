@@ -1,0 +1,28 @@
+// 📖 ==========================================
+// 📖 client/tsconfig.json 配置说明
+// 📖 ==========================================
+// 这是前端项目的"根" tsconfig。
+//
+// 📖 学习点：项目引用（Project References）
+// Vite 生成的前端项目把配置拆成了两份：
+//   - tsconfig.app.json  → 给 React 源码用的（浏览器环境）
+//   - tsconfig.node.json → 给 vite.config.ts 等 Node 工具文件用的
+//
+// 为什么要拆分？因为：
+//   - React 代码运行在浏览器，需要 DOM 类型（document、window 等）
+//   - vite.config.ts 运行在 Node.js，需要 Node 类型（process、__dirname 等）
+//   - 两个环境的类型不一样，混在一起会冲突
+//
+// "files": [] 表示这个根配置本身不编译任何文件，
+// 它只是把两个子配置"组合"在一起。
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
