@@ -10,18 +10,17 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 
-// 📖 学习点：从共享包中导入类型
-// 这就是 monorepo 的好处 —— 前后端用同一套类型定义
 import type { ApiResponse } from "@bookmark/shared";
 
 // 📖 学习点：导入自己的模块
 // 注意 .js 扩展名！在 ES Module 中，即使源码是 .ts，
 // import 路径也要写 .js（因为运行时找的是编译后的 .js 文件）
-// tsx 工具会自动处理这个映射
+import config from "./config.js";
 import { db } from "./database.js";
 import bookmarkRouter from "./routes/bookmarkRoutes.js";
 import tagRouter from "./routes/tagRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { requestLogger } from "./middleware/logger.js";
 
 // ============================================
 // 创建 Express 应用
@@ -31,9 +30,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 // TS 会自动推断 app 的类型为 Express 实例
 const app = express();
 
-// 📖 学习点：常量的类型
-// PORT 会被推断为 number 类型
-const PORT = 3001;
+// 📖 学习点：从配置模块读取，不再硬编码
+const { port: PORT } = config.server;
 
 // ============================================
 // 中间件配置
@@ -43,9 +41,9 @@ const PORT = 3001;
 // 中间件是在请求到达路由处理器之前执行的函数。
 // 执行顺序：cors → json → 路由 → errorHandler
 
-// cors() - 允许跨域请求
+// 📖 中间件执行顺序：logger → cors → json → 路由 → errorHandler
+app.use(requestLogger()); // 请求日志（开发时可以看到每个请求的耗时）
 app.use(cors());
-// express.json() - 自动解析请求体中的 JSON 数据
 app.use(express.json());
 
 // ============================================
@@ -89,7 +87,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`
-  🚀 书签管理器后端已启动
+  🚀 书签管理器后端已启动 (${config.env})
   📍 地址: http://localhost:${PORT}
   💚 健康检查: http://localhost:${PORT}/api/health
   📚 书签 API: http://localhost:${PORT}/api/bookmarks
