@@ -4,3 +4,5 @@
 // 而不是：import { Bookmark } from '@bookmark/shared/src/types'
 
 export * from "./types.js";
+export * from "./validators.js";
+
