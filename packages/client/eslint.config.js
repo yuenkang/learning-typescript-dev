@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook";
+
 // 📖 ==========================================
 // 📖 ESLint 配置 — 代码规范检查工具
 // 📖 ==========================================
@@ -18,35 +21,31 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-export default defineConfig([
-  // 📖 globalIgnores: 全局忽略的文件/目录
-  // dist/ 是编译输出目录，不需要 lint 检查
-  globalIgnores(['dist']),
+export default defineConfig([// 📖 globalIgnores: 全局忽略的文件/目录
+// dist/ 是编译输出目录，不需要 lint 检查
+globalIgnores(['dist']), {
+  // 📖 files: 指定这组规则适用于哪些文件
+  // 只检查 .ts 和 .tsx 文件（TypeScript 文件）
+  files: ['**/*.{ts,tsx}'],
 
-  {
-    // 📖 files: 指定这组规则适用于哪些文件
-    // 只检查 .ts 和 .tsx 文件（TypeScript 文件）
-    files: ['**/*.{ts,tsx}'],
+  // 📖 extends: 继承的规则集
+  // 从基础到具体，每层叠加更多规则：
+  extends: [
+    // 1. ESLint 官方推荐规则（基础 JS 规则）
+    js.configs.recommended,
+    // 2. TypeScript ESLint 推荐规则（TS 特有的类型检查规则）
+    tseslint.configs.recommended,
+    // 3. React Hooks 规则（确保 Hooks 使用正确，如依赖数组完整性）
+    reactHooks.configs.flat.recommended,
+    // 4. React Refresh 规则（确保热更新正常工作）
+    reactRefresh.configs.vite,
+  ],
 
-    // 📖 extends: 继承的规则集
-    // 从基础到具体，每层叠加更多规则：
-    extends: [
-      // 1. ESLint 官方推荐规则（基础 JS 规则）
-      js.configs.recommended,
-      // 2. TypeScript ESLint 推荐规则（TS 特有的类型检查规则）
-      tseslint.configs.recommended,
-      // 3. React Hooks 规则（确保 Hooks 使用正确，如依赖数组完整性）
-      reactHooks.configs.flat.recommended,
-      // 4. React Refresh 规则（确保热更新正常工作）
-      reactRefresh.configs.vite,
-    ],
-
-    languageOptions: {
-      // ECMAScript 版本
-      ecmaVersion: 2020,
-      // 📖 globals.browser: 声明浏览器全局变量（window、document 等）
-      // 这样 ESLint 就不会把 window、document 标记为"未定义变量"
-      globals: globals.browser,
-    },
+  languageOptions: {
+    // ECMAScript 版本
+    ecmaVersion: 2020,
+    // 📖 globals.browser: 声明浏览器全局变量（window、document 等）
+    // 这样 ESLint 就不会把 window、document 标记为"未定义变量"
+    globals: globals.browser,
   },
-])
+}, ...storybook.configs["flat/recommended"]])
