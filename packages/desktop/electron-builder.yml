@@ -1,0 +1,69 @@
+# ============================================
+# 📖 TypeScript + Electron 学习笔记：打包配置
+# ============================================
+# 📖 学习点：electron-builder
+# electron-builder 能把 Electron 应用打包成各平台的安装包：
+#   - macOS: .dmg（磁盘映像，拖拽安装）
+#   - Windows: .exe（NSIS 安装器）
+#   - Linux: .AppImage（免安装，双击运行）
+
+# 📖 学习点：appId
+# 应用的唯一标识，macOS 用它来区分沙盒和通知权限
+# 格式通常是「反向域名」: com.公司.应用名
+appId: com.bookmark.desktop
+productName: 书签管理器
+
+# 📖 学习点：monorepo 中的 electron 版本
+# 在 npm workspaces 中，electron 被提升到根目录的 node_modules
+# electron-builder 默认只在当前 package 的 node_modules 中查找
+# 需要显式指定版本号来解决这个问题
+electronVersion: 40.6.1
+
+# 📖 打包输出目录
+directories:
+  output: release/${version}
+
+# 📖 学习点：files 配置
+# 指定哪些文件会被打包进最终的应用中
+# Vite 构建后的产物在 dist/（渲染进程）和 dist-electron/（主进程）
+files:
+  - dist/**/*
+  - dist-electron/**/*
+
+# ============================================
+# 📖 各平台配置
+# ============================================
+
+# 📖 macOS 配置
+mac:
+  # 📖 target 指定生成的安装包类型
+  # dmg = 磁盘映像（macOS 最常见的分发方式）
+  # zip = 压缩包（用于自动更新）
+  target:
+    - dmg
+    - zip
+  # 📖 构建 x64（Intel）和 arm64（Apple Silicon）两个架构
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+# 📖 Windows 配置
+win:
+  target:
+    # 📖 NSIS = Nullsoft Scriptable Install System
+    # Windows 最常见的安装器格式（"下一步下一步"式安装）
+    - nsis
+  artifactName: ${productName}-${version}-setup.${ext}
+
+# 📖 NSIS 安装器的详细配置
+nsis:
+  oneClick: false # 📖 false = 显示安装向导，让用户选择安装目录
+  perMachine: false # 📖 false = 仅为当前用户安装（不需要管理员权限）
+  allowToChangeInstallationDirectory: true # 📖 允许自定义安装路径
+  deleteAppDataOnUninstall: false # 📖 卸载时保留用户数据
+
+# 📖 Linux 配置
+linux:
+  target:
+    # 📖 AppImage = Linux 通用格式，不需要 root 权限即可运行
+    - AppImage
+  category: Utility
+  artifactName: ${productName}-${version}.${ext}

@@ -1,37 +1,40 @@
 // ============================================
-// 📖 TypeScript + React 学习笔记：重构后的主应用
+// 📖 TypeScript + Electron 学习笔记：桌面版主应用
 // ============================================
-// 对比阶段三的 App.tsx，重构后的变化：
-// - 数据逻辑提取到 useBookmarks / useTags Hook 中
-// - 组件只关注 UI 和事件处理
-// - 代码行数减少约 40%，可读性大幅提升
+// 📖 学习点：跨包组件复用
+// 这个文件和 client 的 App.tsx 结构几乎相同，
+// 但直接从 client 包导入组件和 hooks，有效避免代码重复。
 //
-// 📖 学习点：关注点分离（Separation of Concerns）
-// - Hook → 处理数据（获取、增删改）
-// - 组件 → 处理展示和交互
-// 这是 React 项目中最重要的架构原则之一。
+// 📖 注意事项：
+// 1. 组件从 @client/... 路径导入（Vite alias 解析）
+// 2. 组件内部的 ../api 导入会被 Vite alias 重定向到桌面版 api.ts
+// 3. hooks 同样从 @client 导入，它们内部引用的 api 也会被重定向
 
 import { useState } from "react";
 import type { BookmarkWithTags } from "@bookmark/shared";
-import { useBookmarks, useTags, useDebounce, BookmarkCard, BookmarkForm } from "@bookmark/ui";
+
+// 📖 学习点：从共享 UI 包导入
+// 组件和 hooks 现在位于独立的 @bookmark/ui 包中，
+// client 和 desktop 都从这里导入，消除了互相依赖。
+import {
+  useBookmarks,
+  useTags,
+  useDebounce,
+  BookmarkCard,
+  BookmarkForm,
+} from "@bookmark/ui";
 
 function App() {
-  // ---------- UI 状态 ----------
+  // ---------- UI 状态（和 client 版相同）----------
   const [showForm, setShowForm] = useState(false);
   const [editingBookmark, setEditingBookmark] =
     useState<BookmarkWithTags | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
 
-  // 📖 学习点：防抖优化
-  // 用户输入时 searchQuery 实时变化（UI 显示）
-  // 但 debouncedSearch 只在停止输入 300ms 后才更新（触发 API 请求）
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  // ---------- 数据状态（来自自定义 Hook）----------
-  // 📖 学习点：对比重构前后
-  // 重构前：useState + useEffect + useCallback 散落在组件中（~30 行）
-  // 重构后：一行代码搞定 ↓
+  // ---------- 数据状态 ----------
   const {
     bookmarks,
     loading,
@@ -41,7 +44,7 @@ function App() {
     updateBookmarkInList,
     removeBookmark,
   } = useBookmarks({
-    search: debouncedSearch, // 📖 用防抖后的值发请求，减少无效 API 调用
+    search: debouncedSearch,
     tagId: selectedTagId,
   });
 
@@ -66,12 +69,22 @@ function App() {
   // ---------- 渲染 ----------
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
-      {/* 顶部导航 */}
+      {/* 📖 学习点：桌面端标题栏
+        * macOS 上使用了 titleBarStyle: 'hiddenInset'，
+        * 所以需要一个可拖拽区域来替代系统标题栏。
+        * drag-region 类在 index.css 中定义了 -webkit-app-region: drag
+        */}
       <header className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-lg border-b border-white/10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            📚 书签管理器
-          </h1>
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between drag-region">
+          {/* 📖 macOS 左侧有红绿灯按钮，需要留出空间 */}
+          <div className="pl-16">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              📚 书签管理器
+              <span className="ml-2 text-xs font-normal text-slate-500">
+                桌面版
+              </span>
+            </h1>
+          </div>
           <button
             onClick={() => {
               setEditingBookmark(null);
@@ -160,6 +173,9 @@ function App() {
           <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-6 text-center">
             <p className="text-red-300 font-medium mb-2">加载失败</p>
             <p className="text-red-400/80 text-sm">{error}</p>
+            <p className="text-red-400/60 text-xs mt-1">
+              请确保后端服务已启动（npm run dev:server）
+            </p>
             <button
               onClick={refresh}
               className="mt-3 px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-sm rounded-lg transition-colors"

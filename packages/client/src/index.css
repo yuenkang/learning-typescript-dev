@@ -4,6 +4,12 @@
  */
 @import "tailwindcss";
 
+/* 📖 学习点：@source 指令
+ * 组件已迁移到 @bookmark/ui 包，Tailwind 默认不扫描外部包的源码。
+ * 需要用 @source 显式指定扫描路径，确保组件中的 CSS 类名被生成。
+ */
+@source "../../ui/src";
+
 /* 全局基础样式 */
 body {
   margin: 0;

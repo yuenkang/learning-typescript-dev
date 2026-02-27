@@ -18,6 +18,21 @@ import type {
     ApiResponse,
 } from "@bookmark/shared";
 
+// 📖 学习点：环境感知的 API 基础路径
+//
+// 在不同环境下，API 请求的目标地址不同：
+//   - Web 开发模式：Vite dev proxy 把 /api/* 转发到后端，用相对路径即可
+//   - Electron 开发模式：同上，vite-plugin-electron 也通过 Vite dev server 加载
+//   - Electron 生产模式：页面从 file:// 加载，/api/* 会变成 file:///api/*
+//     所以必须用绝对路径 http://localhost:3001
+//
+// 📖 学习点：window.location.protocol 判断
+// file:// 协议说明是 Electron 打包后运行，需要完整的后端地址
+const API_BASE =
+    typeof window !== "undefined" && window.location.protocol === "file:"
+        ? "http://localhost:3001"
+        : "";
+
 // ============================================
 // 📖 TypeScript 学习笔记：通用请求函数
 // ============================================
@@ -37,7 +52,7 @@ async function request<T>(
     url: string,
     options?: RequestInit // 📖 RequestInit 是浏览器内置类型，定义了 fetch 的选项
 ): Promise<T> {
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE}${url}`, {
         headers: {
             "Content-Type": "application/json",
         },

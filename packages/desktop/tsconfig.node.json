@@ -1,0 +1,34 @@
+// 📖 ==========================================
+// 📖 tsconfig.node.json — 主进程 + preload 的 TS 配置
+// 📖 ==========================================
+// 📖 学习点：Electron 的主进程运行在 Node.js 环境中，
+// 所以需要不同于渲染进程的 TS 配置。
+// 主要区别：
+// - 不需要 DOM 类型（没有浏览器 API）
+// - 需要 Node.js 类型
+// - 需要输出编译结果（Electron 加载编译后的 JS）
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+
+    // 📖 学习点：主进程需要输出编译后的 JS 文件
+    // 因为 Electron 需要加载实际的 .js 文件来运行主进程
+    "outDir": "./dist-electron",
+
+    // Node.js 环境
+    "types": ["node"],
+
+    // 严格模式
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["electron", "vite.config.ts"]
+}

@@ -221,7 +221,6 @@ export default function BookmarkForm({
                                         backgroundColor: selectedTagIds.includes(tag.id)
                                             ? `${tag.color ?? "#6366f1"}44`
                                             : "rgba(255,255,255,0.05)",
-                                        ringColor: tag.color ?? "#6366f1",
                                         borderColor: selectedTagIds.includes(tag.id)
                                             ? tag.color ?? "#6366f1"
                                             : "transparent",

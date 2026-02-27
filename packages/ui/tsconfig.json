@@ -1,0 +1,29 @@
+// 📖 ==========================================
+// 📖 tsconfig.json — 共享 UI 组件的 TS 配置
+// 📖 ==========================================
+// 📖 学习点：这个包作为源码包（Source Package）被消费
+// 不需要编译输出，由消费方（client/desktop）的打包工具处理。
+// 配置和 client/tsconfig.app.json 基本一致。
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,33 @@
+// 📖 ==========================================
+// 📖 tsconfig.app.json — 渲染进程（React）的 TS 配置
+// 📖 ==========================================
+// 📖 学习点：Electron 的渲染进程和浏览器环境基本一样，
+// 所以配置和 client/tsconfig.app.json 几乎相同。
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    // 📖 学习点：打包模式
+    // Vite 负责打包，TS 只做类型检查
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    // 严格模式
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}
