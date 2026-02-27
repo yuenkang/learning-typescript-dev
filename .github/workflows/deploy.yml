@@ -1,0 +1,122 @@
+# ============================================
+# 📖 学习点：Google Cloud Run 部署工作流
+# ============================================
+# 📖 Cloud Run 是 Google Cloud 的无服务器容器平台
+# 你只需要提供 Docker 镜像，Cloud Run 自动处理：
+#   - 扩缩容（0-N 实例）
+#   - HTTPS 证书
+#   - 负载均衡
+
+name: Deploy to Cloud Run
+
+# 📖 推送到 master 时自动部署
+on:
+  push:
+    branches: [master]
+
+# 📖 学习点：环境变量集中管理
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION || 'asia-east2' }}
+
+jobs:
+  # ============================================
+  # 部署后端 Server
+  # ============================================
+  deploy-server:
+    name: 部署 Server → Cloud Run
+    runs-on: ubuntu-latest
+    # 📖 学习点：GitHub Environments
+    # 配置 production 环境后，部署前会等待人工审批
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 📖 学习点：Service Account Key 认证
+      # 使用 JSON 密钥文件认证 Google Cloud
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # 📖 学习点：配置 Docker 推送到 Artifact Registry
+      - name: 配置 Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      # 📖 构建并推送 Docker 镜像
+      - name: 构建 Server 镜像
+        run: |
+          docker build \
+            -f packages/server/Dockerfile \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/server:${{ github.sha }} \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/server:latest \
+            .
+
+      - name: 推送镜像
+        run: |
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/server:${{ github.sha }}
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/server:latest
+
+      # 📖 学习点：部署到 Cloud Run
+      - name: 部署到 Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bookmark-server
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/server:${{ github.sha }}
+          flags: --allow-unauthenticated
+
+  # ============================================
+  # 部署前端 Client
+  # ============================================
+  deploy-client:
+    name: 部署 Client → Cloud Run
+    runs-on: ubuntu-latest
+    needs: deploy-server # 📖 等 server 部署完再部署 client
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: 配置 Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      # 📖 获取 server 的 Cloud Run URL 作为 API 地址
+      - name: 获取 Server URL
+        id: server_url
+        run: |
+          URL=$(gcloud run services describe bookmark-server \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      # 📖 构建时通过 --build-arg 注入后端地址
+      - name: 构建 Client 镜像
+        run: |
+          docker build \
+            -f packages/client/Dockerfile \
+            --build-arg VITE_API_BASE=${{ steps.server_url.outputs.url }} \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }} \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:latest \
+            .
+
+      - name: 推送镜像
+        run: |
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }}
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:latest
+
+      - name: 部署到 Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: bookmark-client
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }}
+          flags: --allow-unauthenticated

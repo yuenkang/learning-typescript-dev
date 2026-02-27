@@ -1,0 +1,61 @@
+# ============================================
+# 📖 学习点：GitHub Actions CI 工作流
+# ============================================
+# 📖 CI（Continuous Integration，持续集成）
+# 每次推送代码或创建 PR 时自动运行检查，
+# 确保代码质量（类型安全、构建通过）
+
+name: CI
+
+# 📖 学习点：触发条件
+# push: 推送到 master 分支时触发
+# pull_request: 创建/更新 PR 到 master 时触发
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # 📖 学习点：Job — 一组在同一运行器上执行的步骤
+  typecheck-and-build:
+    name: 类型检查 & 构建
+    runs-on: ubuntu-latest
+
+    steps:
+      # 📖 学习点：actions/checkout — 拉取仓库代码
+      - uses: actions/checkout@v4
+
+      # 📖 学习点：actions/setup-node — 安装 Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 📖 学习点：npm ci 比 npm install 更快更严格
+      # 它严格按照 package-lock.json 安装，适合 CI 环境
+      - name: 安装依赖
+        run: npm ci
+
+      # 📖 TypeScript 类型检查 — 分别检查每个包
+      - name: 类型检查 - shared
+        run: npx tsc --noEmit -p packages/shared/tsconfig.json
+
+      - name: 类型检查 - ui
+        run: npx tsc --noEmit -p packages/ui/tsconfig.json
+
+      - name: 类型检查 - server
+        run: npx tsc --noEmit -p packages/server/tsconfig.json
+
+      - name: 类型检查 - client
+        run: npx tsc --noEmit -p packages/client/tsconfig.app.json
+
+      - name: 类型检查 - desktop
+        run: npx tsc --noEmit -p packages/desktop/tsconfig.app.json
+
+      # 📖 构建验证 — 确保 Vite 能正常构建生产版本
+      - name: 构建 client
+        run: npm run build --workspace=packages/client
+
+      - name: 构建 desktop (Vite only)
+        run: npm run build --workspace=packages/desktop

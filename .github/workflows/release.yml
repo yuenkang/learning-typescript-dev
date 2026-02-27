@@ -1,0 +1,64 @@
+# ============================================
+# 📖 学习点：GitHub Actions CD — 桌面应用发布
+# ============================================
+# 📖 CD（Continuous Delivery，持续交付）
+# 当推送 tag（如 v1.0.0）时，自动在三个平台上
+# 打包 Electron 应用并创建 GitHub Release
+
+name: Desktop Release
+
+# 📖 学习点：tag 触发
+# 只在推送 v* 格式的 tag 时触发（如 v1.0.0、v2.1.3）
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: 发布 ${{ matrix.os }}
+    # 📖 学习点：矩阵策略（Matrix Strategy）
+    # 同一个 job 在多个操作系统上并行运行
+    # 每个 os 会生成对应平台的安装包
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      # 📖 学习点：electron-builder 会自动检测当前 OS 并打包对应格式
+      # macOS → .dmg + .zip
+      # Windows → .exe (NSIS)
+      # Linux → .AppImage
+      - name: 打包桌面应用
+        run: npm run dist:desktop
+        env:
+          # 📖 学习点：Vite 环境变量注入
+          # VITE_ 前缀的变量会被 Vite 在构建时静态替换到代码中
+          # 在 GitHub repo Settings → Secrets 中配置 API_BASE_URL
+          VITE_API_BASE: ${{ secrets.API_BASE_URL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 📖 学习点：上传构建产物到 GitHub Release
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            packages/desktop/release/**/*.dmg
+            packages/desktop/release/**/*.zip
+            packages/desktop/release/**/*.exe
+            packages/desktop/release/**/*.AppImage
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

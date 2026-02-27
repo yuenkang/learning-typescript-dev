@@ -20,18 +20,18 @@ import type {
 
 // 📖 学习点：环境感知的 API 基础路径
 //
-// 在不同环境下，API 请求的目标地址不同：
-//   - Web 开发模式：Vite dev proxy 把 /api/* 转发到后端，用相对路径即可
-//   - Electron 开发模式：同上，vite-plugin-electron 也通过 Vite dev server 加载
-//   - Electron 生产模式：页面从 file:// 加载，/api/* 会变成 file:///api/*
-//     所以必须用绝对路径 http://localhost:3001
+// 📖 优先级：
+//   1. VITE_API_BASE 环境变量（CI/CD 打包时注入，如 https://api.example.com）
+//   2. Electron 生产模式（file:// 协议）→ 默认 http://localhost:3001
+//   3. 开发模式 → 空字符串（由 Vite dev proxy 转发）
 //
-// 📖 学习点：window.location.protocol 判断
-// file:// 协议说明是 Electron 打包后运行，需要完整的后端地址
+// 📖 学习点：import.meta.env
+// Vite 会在构建时将 VITE_ 前缀的环境变量静态替换到代码中
 const API_BASE =
-    typeof window !== "undefined" && window.location.protocol === "file:"
-        ? "http://localhost:3001"
-        : "";
+    import.meta.env.VITE_API_BASE
+        ?? (typeof window !== "undefined" && window.location.protocol === "file:"
+            ? "http://localhost:3001"
+            : "");
 
 // ============================================
 // 📖 TypeScript 学习笔记：通用请求函数
