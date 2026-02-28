@@ -10,17 +10,19 @@
 // 但渲染进程默认不能访问，需要通过 preload 脚本桥接。
 
 import { app, BrowserWindow, Menu } from "electron";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-// 📖 学习点：ESM 中获取 __dirname
-// ESM 模块没有 __dirname，需要手动从 import.meta.url 转换
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// 📖 学习点：生产模式的路径计算
-// app.isPackaged 在打包后为 true，此时 __dirname 在 asar 内
-// 通过 app.getAppPath() 获取 asar 根路径，再拼接 dist 目录
-const DIST = path.join(app.getAppPath(), "dist");
+// 📖 学习点：路径计算策略
+// 开发模式：使用 import.meta.url 计算 __dirname（标准 ESM 方式）
+// 打包模式：使用 app.getAppPath() 获取 asar 根路径
+//
+// 📖 为什么打包后不能用 import.meta.url？
+// 在 asar 包内，import.meta.url 可能解析为 electron: 协议，
+// fileURLToPath() 无法处理该协议会导致崩溃。
+// app.getAppPath() 则始终返回正确的 asar 路径。
+const APP_ROOT = app.getAppPath();
+const DIST = path.join(APP_ROOT, "dist");
+const DIST_ELECTRON = path.join(APP_ROOT, "dist-electron");
 
 // 📖 学习点：环境变量
 // Vite 在开发模式下会通过环境变量传递开发服务器的 URL
@@ -47,7 +49,9 @@ function createWindow(): void {
     // 📖 学习点：macOS 上的圆角标题栏效果
     titleBarStyle: "hiddenInset",
     webPreferences: {
-      preload: path.join(__dirname, "preload.mjs"),
+      // 📖 学习点：preload 路径使用 app.getAppPath() 计算
+      // 打包后 preload.js 位于 <asar>/dist-electron/preload.js
+      preload: path.join(DIST_ELECTRON, "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
       // 📖 学习点：webSecurity
@@ -97,6 +101,20 @@ function createWindow(): void {
     },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+
+  // 📖 调试日志（定位打包后白屏问题用，稳定后可删除）
+  console.log("[DEBUG] app.isPackaged:", app.isPackaged);
+  console.log("[DEBUG] APP_ROOT:", APP_ROOT);
+  console.log("[DEBUG] DIST:", DIST);
+  console.log("[DEBUG] DIST_ELECTRON:", DIST_ELECTRON);
+  console.log("[DEBUG] VITE_DEV_SERVER_URL:", VITE_DEV_SERVER_URL);
+
+  win.webContents.on("console-message", (_event, level, message, line, sourceId) => {
+    console.log(`[RENDERER ${level}] ${message} (${sourceId}:${line})`);
+  });
+  win.webContents.on("did-fail-load", (_event, errorCode, errorDescription, validatedURL) => {
+    console.error(`[RENDERER FAIL] ${errorCode} ${errorDescription} url=${validatedURL}`);
+  });
 
   // 📖 学习点：开发模式 vs 生产模式
   // 开发模式：加载 Vite 开发服务器（支持 HMR 热更新）

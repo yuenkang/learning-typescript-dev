@@ -14,6 +14,11 @@ on:
     tags:
       - "v*"
 
+# 📖 学习点：权限声明
+# GITHUB_TOKEN 默认只有读权限，创建 Release 需要写权限
+permissions:
+  contents: write
+
 jobs:
   release:
     name: 发布 ${{ matrix.os }}
@@ -21,9 +26,14 @@ jobs:
     # 同一个 job 在多个操作系统上并行运行
     # 每个 os 会生成对应平台的安装包
     strategy:
+      # 📖 学习点：fail-fast: false
+      # 默认一个平台失败会取消所有平台，设为 false 让各平台独立运行
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    # 📖 超时设置，防止打包过程卡死
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +45,13 @@ jobs:
 
       - name: 安装依赖
         run: npm ci
+
+      # 📖 学习点：Linux 需要额外的系统依赖来打包 AppImage
+      - name: 安装 Linux 打包依赖
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools rpm
 
       # 📖 学习点：electron-builder 会自动检测当前 OS 并打包对应格式
       # macOS → .dmg + .zip

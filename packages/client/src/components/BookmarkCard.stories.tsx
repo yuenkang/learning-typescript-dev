@@ -5,7 +5,8 @@
 // 通过传入不同的 Props（args），观察组件在各种场景下的表现。
 
 import type { Meta, StoryObj } from "@storybook/react";
-import BookmarkCard from "./BookmarkCard";
+import { BookmarkCard } from "@bookmark/ui";
+import type { BookmarkWithTags } from "@bookmark/shared";
 
 // ============================================
 // Meta：注册组件
@@ -58,8 +59,8 @@ export const Default: Story = {
             tags: [sampleTags[0], sampleTags[1]],
         },
         allTags: sampleTags,
-        onEdit: (b) => console.log("编辑:", b.title),
-        onDelete: (id) => console.log("删除 ID:", id),
+        onEdit: (b: BookmarkWithTags) => console.log("编辑:", b.title),
+        onDelete: (id: number) => console.log("删除 ID:", id),
     },
 };
 

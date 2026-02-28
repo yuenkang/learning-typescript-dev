@@ -10,6 +10,11 @@
 # 📖 学习点：appId
 # 应用的唯一标识，macOS 用它来区分沙盒和通知权限
 # 格式通常是「反向域名」: com.公司.应用名
+# 📖 学习点：禁用自动更新发布
+# 没有集成 electron-updater 时，不需要生成更新信息
+# 否则 CI 上会因找不到 repository 配置而报错
+publish: null
+
 appId: com.bookmark.desktop
 productName: 书签管理器
 
@@ -43,7 +48,7 @@ mac:
     - dmg
     - zip
   # 📖 构建 x64（Intel）和 arm64（Apple Silicon）两个架构
-  artifactName: ${productName}-${version}-${arch}.${ext}
+  artifactName: BookmarkManager-${version}-${arch}.${ext}
 
 # 📖 Windows 配置
 win:
@@ -51,7 +56,7 @@ win:
     # 📖 NSIS = Nullsoft Scriptable Install System
     # Windows 最常见的安装器格式（"下一步下一步"式安装）
     - nsis
-  artifactName: ${productName}-${version}-setup.${ext}
+  artifactName: BookmarkManager-${version}-setup.${ext}
 
 # 📖 NSIS 安装器的详细配置
 nsis:
@@ -66,4 +71,4 @@ linux:
     # 📖 AppImage = Linux 通用格式，不需要 root 权限即可运行
     - AppImage
   category: Utility
-  artifactName: ${productName}-${version}.${ext}
+  artifactName: BookmarkManager-${version}.${ext}

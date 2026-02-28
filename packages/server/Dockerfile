@@ -2,8 +2,8 @@
 # 📖 学习点：多阶段 Docker 构建（Multi-stage Build）
 # ============================================
 # 分为两个阶段：
-#   1. build 阶段：安装依赖、编译 TypeScript
-#   2. production 阶段：只复制运行时需要的文件
+#   1. build 阶段：安装全部依赖
+#   2. production 阶段：只安装生产依赖 + 复制源码
 # 这样最终镜像更小、更安全
 
 # ---------- 第一阶段：构建 ----------
@@ -20,33 +20,29 @@ COPY packages/server/package.json packages/server/
 
 RUN npm ci --workspace=packages/shared --workspace=packages/server
 
-# 复制源码并构建
-COPY packages/shared/ packages/shared/
-COPY packages/server/ packages/server/
-COPY tsconfig.base.json ./
-
-RUN npm run build --workspace=packages/server 2>/dev/null || true
-
 # ---------- 第二阶段：运行 ----------
 FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# 📖 学习点：只复制生产依赖
+# 📖 学习点：只复制生产依赖（tsx 已移至 dependencies）
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 
 RUN npm ci --workspace=packages/shared --workspace=packages/server --omit=dev
 
-# 复制源码（tsx 直接运行 TypeScript，无需编译产物）
+# 复制源码
 COPY packages/shared/ packages/shared/
 COPY packages/server/ packages/server/
+
+# 📖 创建数据目录（SQLite 数据库存储位置）
+RUN mkdir -p packages/server/data
 
 # 📖 学习点：Cloud Run 要求监听 PORT 环境变量
 ENV NODE_ENV=production
 ENV PORT=8080
 EXPOSE 8080
 
-# 📖 使用 tsx 直接运行 TypeScript
+# 📖 使用 tsx 直接运行 TypeScript（tsx 已在 dependencies 中）
 CMD ["npx", "tsx", "packages/server/src/index.ts"]

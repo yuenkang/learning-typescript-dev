@@ -5,7 +5,8 @@
 // 通过 editingBookmark 是否为 null 来区分。
 
 import type { Meta, StoryObj } from "@storybook/react";
-import BookmarkForm from "./BookmarkForm";
+import { BookmarkForm } from "@bookmark/ui";
+import type { CreateBookmarkRequest, Tag } from "@bookmark/shared";
 
 const meta: Meta<typeof BookmarkForm> = {
     title: "Components/BookmarkForm",
@@ -38,9 +39,9 @@ export const CreateMode: Story = {
     args: {
         editingBookmark: null,
         allTags: sampleTags,
-        onSave: (b) => console.log("保存:", b),
+        onSave: (b: CreateBookmarkRequest) => console.log("保存:", b),
         onCancel: () => console.log("取消"),
-        onTagCreated: (t) => console.log("新标签:", t),
+        onTagCreated: (t: Tag) => console.log("新标签:", t),
     },
 };
 
@@ -57,9 +58,9 @@ export const EditMode: Story = {
             tags: [sampleTags[0], sampleTags[1]],
         },
         allTags: sampleTags,
-        onSave: (b) => console.log("更新:", b),
+        onSave: (b: CreateBookmarkRequest) => console.log("更新:", b),
         onCancel: () => console.log("取消"),
-        onTagCreated: (t) => console.log("新标签:", t),
+        onTagCreated: (t: Tag) => console.log("新标签:", t),
     },
 };
 
@@ -68,8 +69,8 @@ export const NoAvailableTags: Story = {
     args: {
         editingBookmark: null,
         allTags: [],
-        onSave: (b) => console.log("保存:", b),
+        onSave: (b: CreateBookmarkRequest) => console.log("保存:", b),
         onCancel: () => console.log("取消"),
-        onTagCreated: (t) => console.log("新标签:", t),
+        onTagCreated: (t: Tag) => console.log("新标签:", t),
     },
 };

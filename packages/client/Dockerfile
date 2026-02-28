@@ -20,11 +20,9 @@ COPY packages/ui/ packages/ui/
 COPY packages/client/ packages/client/
 COPY tsconfig.base.json ./
 
-# 📖 学习点：构建时注入环境变量
-# ARG 接收 docker build --build-arg 传入的值
-# 然后设为环境变量，Vite 构建时会静态替换到代码中
-ARG VITE_API_BASE
-ENV VITE_API_BASE=$VITE_API_BASE
+# 📖 同域名部署（bookmark.example.com）无需注入 API 地址
+# 前端使用相对路径 /api/... 即可
+# 仅 Desktop 打包需要 VITE_API_BASE（通过 .env 配置）
 
 RUN npm run build --workspace=packages/client
 

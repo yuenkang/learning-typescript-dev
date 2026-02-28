@@ -20,18 +20,18 @@ import type {
 
 // 📖 学习点：环境感知的 API 基础路径
 //
-// 📖 优先级：
-//   1. VITE_API_BASE 环境变量（CI/CD 打包时注入，如 https://api.example.com）
-//   2. Electron 生产模式（file:// 协议）→ 默认 http://localhost:3001
-//   3. 开发模式 → 空字符串（由 Vite dev proxy 转发）
+// 📖 同域名部署（bookmark.example.com）：
+//   - /api/* → Server (Cloud Run)
+//   - /*     → Client (Cloud Run)
+//   前端用相对路径 /api/... 即可，无需跨域
 //
-// 📖 学习点：import.meta.env
-// Vite 会在构建时将 VITE_ 前缀的环境变量静态替换到代码中
+// 📖 Electron 桌面端：
+//   页面从 file:// 加载，必须用绝对路径
+//   优先读 VITE_API_BASE 环境变量，否则默认 localhost:3001
 const API_BASE =
-    import.meta.env.VITE_API_BASE
-        ?? (typeof window !== "undefined" && window.location.protocol === "file:"
-            ? "http://localhost:3001"
-            : "");
+    typeof window !== "undefined" && window.location.protocol === "file:"
+        ? (import.meta.env.VITE_API_BASE ?? "http://localhost:3001")
+        : "";
 
 // ============================================
 // 📖 TypeScript 学习笔记：通用请求函数

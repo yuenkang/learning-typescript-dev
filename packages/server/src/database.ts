@@ -112,4 +112,4 @@ function initDatabase(): Database.Database {
 // 📖 学习点：单例模式（Singleton）
 // 整个应用只创建一个数据库连接实例。
 // 其他文件 import { db } from './database.js' 拿到的都是同一个实例。
-export const db = initDatabase();
+export const db: Database.Database = initDatabase();

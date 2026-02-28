@@ -90,72 +90,102 @@ gcloud artifacts repositories create bookmark \
 
 ## 3. 部署
 
-完成上述配置后，任何推送到 `master` 分支的提交都会自动触发部署工作流：
+完成上述配置后，任何推送到 `master` 分支的提交都会自动触发部署工作流。Server 和 Client **并行部署**到 Cloud Run。
 
-1. **Server** 先部署到 Cloud Run（Express API）
-2. 自动获取 Server 的 Cloud Run URL
-3. **Client** 构建时注入 Server URL 作为 `VITE_API_BASE`，然后部署
+访问方式（同域名路径分发）：
+
+- `bookmark.example.com/api/*` → Server (Express API)
+- `bookmark.example.com/*` → Client (React SPA)
+
+> 同域名部署的好处：前端用相对路径 `/api/...` 即可请求后端，无需跨域 (CORS)。
 
 ---
 
-## 4. 域名配置（香港区域）
+## 4. 域名配置（同域名路径分发）
 
-由于 Google Cloud Run 在香港 (`asia-east2`) 等部分区域**不支持直接的域名映射**功能，您需要配置 **全局外部应用负载均衡器 (Global External Application Load Balancer)** 来绑定自定义域名。
+由于 Cloud Run 在香港 (`asia-east2`) **不支持直接的域名映射**，需要配置**全局外部应用负载均衡器**，并使用 **URL Map 路径规则**将请求分发到不同的 Cloud Run 服务。
 
-### 步骤概览
+### 请求流转路径
 
-1. **预留 IP 地址**：创建一个静态全局 IP 地址。
-2. **创建网络端点组 (NEG)**：将 Cloud Run 服务添加为无服务器网络端点组。
-3. **创建负载均衡器**：前端配置绑定 IP 和 HTTPS 证书，后端指向 NEG。
-4. **配置 DNS**：将域名解析到预留的 IP 地址。
+```
+用户浏览器
+    │  DNS 解析 bookmark.example.com → 34.xx.xx.xx (Static IP)
+    ▼
+Forwarding Rule (bookmark-forwarding-rule)         端口 443
+    ▼
+HTTPS Proxy (bookmark-https-proxy)                 SSL 终止
+    ▼
+URL Map (bookmark-url-map)                         路径匹配
+    ├── /api/*  → server-backend → server-neg → Cloud Run: bookmark-server
+    └── /*      → client-backend → client-neg → Cloud Run: bookmark-client
+```
 
-### 详细步骤（推荐使用 Cloud Shell 命令行）
+### 资源依赖关系（创建从下往上，删除从上往下）
 
-由于控制台 UI 经常变化，**强烈建议**直接在 Google Cloud Console 右上角点击终端图标打开 **Cloud Shell** 运行以下命令：
+```
+Static IP  ←──  Forwarding Rule  ←──  HTTPS Proxy
+                                        ├── SSL Certificate
+                                        └── URL Map
+                                              ├── server-backend ← server-neg ← Cloud Run: server
+                                              └── client-backend ← client-neg ← Cloud Run: client
+```
+
+### 详细步骤（推荐使用 Cloud Shell）
 
 ```bash
-# 1. 设置变量（请替换为您的真实域名和服务名）
-DOMAIN="api.yourdomain.com"
+# 1. 设置变量
+DOMAIN="bookmark.kang.icu"
 REGION="asia-east2"
-SERVER_SERVICE="bookmark-server"
-CLIENT_SERVICE="bookmark-client"
 
 # 2. 预留静态 IP 地址
 gcloud compute addresses create bookmark-lb-ip --global
-
-# 查看分配的 IP 地址（请将此 IP 配置到您的 DNS A 记录）
 gcloud compute addresses describe bookmark-lb-ip --global --format="get(address)"
+# ⬆️ 记下这个 IP，稍后配置 DNS
 
-# 3. 创建无服务器网络端点组 (NEG) — 以 Server 为例
+# 3. 创建两个 NEG（Server + Client）
 gcloud compute network-endpoint-groups create bookmark-server-neg \
     --region=$REGION \
     --network-endpoint-type=serverless \
-    --cloud-run-service=$SERVER_SERVICE
+    --cloud-run-service=bookmark-server
 
-# 4. 创建负载均衡器组件
-# 4.1 创建后端服务
-gcloud compute backend-services create bookmark-backend-service --global
+gcloud compute network-endpoint-groups create bookmark-client-neg \
+    --region=$REGION \
+    --network-endpoint-type=serverless \
+    --cloud-run-service=bookmark-client
 
-# 4.2 将 NEG 添加到后端服务
-gcloud compute backend-services add-backend bookmark-backend-service \
+# 4. 创建两个后端服务
+gcloud compute backend-services create bookmark-server-backend --global
+gcloud compute backend-services add-backend bookmark-server-backend \
     --global \
     --network-endpoint-group=bookmark-server-neg \
     --network-endpoint-group-region=$REGION
 
-# 4.3 创建 URL 映射
+gcloud compute backend-services create bookmark-client-backend --global
+gcloud compute backend-services add-backend bookmark-client-backend \
+    --global \
+    --network-endpoint-group=bookmark-client-neg \
+    --network-endpoint-group-region=$REGION
+
+# 5. 创建 URL Map（路径分发规则）
+# 默认走 Client，/api/* 走 Server
 gcloud compute url-maps create bookmark-url-map \
-    --default-service bookmark-backend-service
+    --default-service bookmark-client-backend
 
-# 4.4 创建托管 SSL 证书
+gcloud compute url-maps add-path-matcher bookmark-url-map \
+    --path-matcher-name=bookmark-routes \
+    --default-service=bookmark-client-backend \
+    --path-rules="/api/*=bookmark-server-backend"
+
+# 6. 创建 SSL 证书
 gcloud compute ssl-certificates create bookmark-cert \
-    --domains $DOMAIN --global
+    --domains=$DOMAIN --global
 
-# 4.5 创建 HTTPS 代理
+# 7. 创建 HTTPS 代理
 gcloud compute target-https-proxies create bookmark-https-proxy \
     --ssl-certificates=bookmark-cert \
     --url-map=bookmark-url-map
 
-# 4.6 创建转发规则（将 IP 绑定到 HTTPS 代理）
+# 8. 创建转发规则
 gcloud compute forwarding-rules create bookmark-forwarding-rule \
     --address=bookmark-lb-ip \
     --target-https-proxy=bookmark-https-proxy \
