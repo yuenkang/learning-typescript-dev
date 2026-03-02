@@ -33,6 +33,12 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      # 📖 学习点：CI 中生成 .env 文件
+      # 从 GitHub Secrets 读取后端地址，写入 .env
+      # 这样打包后的 TUI 就内置了正确的 API 地址
+      - name: 配置后端地址
+        run: echo "API_BASE=${{ secrets.API_BASE_URL }}" > packages/tui/.env
+
       # 📖 学习点：esbuild 打包
       # 将所有代码和依赖打包为单个 .mjs 文件
       # 用户只需 node bookmark-tui.mjs 即可运行
