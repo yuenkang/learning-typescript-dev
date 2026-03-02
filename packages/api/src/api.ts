@@ -20,18 +20,27 @@ import type {
 
 // 📖 学习点：环境感知的 API 基础路径
 //
-// 📖 同域名部署（bookmark.example.com）：
-//   - /api/* → Server (Cloud Run)
-//   - /*     → Client (Cloud Run)
-//   前端用相对路径 /api/... 即可，无需跨域
+// 三种环境，三种策略：
+// 1. Web 浏览器：返回 ""（空），靠 Vite 代理转发 /api/* → localhost:3001
+// 2. Electron 桌面端：页面从 file:// 加载，必须用绝对路径
+// 3. Node.js（TUI 终端）：没有 window 对象，也必须用绝对路径
 //
-// 📖 Electron 桌面端：
-//   页面从 file:// 加载，必须用绝对路径
-//   优先读 VITE_API_BASE 环境变量，否则默认 localhost:3001
-const API_BASE =
-    typeof window !== "undefined" && window.location.protocol === "file:"
-        ? (import.meta.env.VITE_API_BASE ?? "http://localhost:3001")
-        : "";
+// 📖 学习点：惰性求值（Lazy Evaluation）
+// 之前用 const API_BASE = process.env.API_BASE 会在模块加载时立即求值。
+// 但 ES Module 的 import 是静态提升的——所有 import 在代码执行前就被解析。
+// 如果 dotenv 还没来得及加载 .env，process.env.API_BASE 就是 undefined。
+//
+// 解决方案：改成函数，在每次发请求时才去读取环境变量。
+// 这叫"惰性求值"——推迟到真正需要时才计算值。
+function getApiBase(): string {
+    if (typeof window === "undefined") {
+        return process.env.API_BASE ?? "http://localhost:3001";           // Node.js (TUI)
+    }
+    if (window.location.protocol === "file:") {
+        return import.meta.env.VITE_API_BASE ?? "http://localhost:3001"; // Electron
+    }
+    return "";                                                            // Web (代理)
+}
 
 // ============================================
 // 📖 TypeScript 学习笔记：通用请求函数
@@ -43,16 +52,15 @@ const API_BASE =
  * 📖 学习点：泛型函数（Generic Function）
  * - <T> 是泛型参数，调用时由 TS 自动推断或手动指定
  * - 返回 Promise<T>，调用者拿到的就是 T 类型的数据
- * - 这样一个函数就能处理所有类型的 API 响应
  *
  * 📖 学习点：async 函数的返回值
  * async 函数自动返回 Promise，所以返回类型是 Promise<T>
  */
 async function request<T>(
     url: string,
-    options?: RequestInit // 📖 RequestInit 是浏览器内置类型，定义了 fetch 的选项
+    options?: RequestInit
 ): Promise<T> {
-    const response = await fetch(`${API_BASE}${url}`, {
+    const response = await fetch(`${getApiBase()}${url}`, {
         headers: {
             "Content-Type": "application/json",
         },

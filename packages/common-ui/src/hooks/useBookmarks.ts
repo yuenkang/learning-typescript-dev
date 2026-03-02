@@ -18,7 +18,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { BookmarkWithTags, Tag } from "@bookmark/shared";
-import * as api from "../api";
+import * as api from "@bookmark/api";
 
 // ============================================
 // 📖 TypeScript 学习笔记：Hook 的返回值类型

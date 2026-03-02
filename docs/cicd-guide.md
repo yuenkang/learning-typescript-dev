@@ -4,11 +4,12 @@
 
 ## 概览
 
-| 工作流              | 文件          | 触发条件            | 用途                                     |
-| ------------------- | ------------- | ------------------- | ---------------------------------------- |
-| **CI**              | `ci.yml`      | push / PR 到 master | TypeScript 类型检查 + 构建验证           |
-| **Deploy**          | `deploy.yml`  | push 到 master      | 部署 Server + Client 到 Google Cloud Run |
-| **Desktop Release** | `release.yml` | push `v*` tag       | 跨平台打包桌面应用 + 创建 GitHub Release |
+| 工作流              | 文件              | 触发条件            | 用途                                     |
+| ------------------- | ----------------- | ------------------- | ---------------------------------------- |
+| **CI**              | `ci.yml`          | push / PR 到 master | TypeScript 类型检查 + 构建验证           |
+| **Deploy**          | `deploy.yml`      | push 到 master      | 部署 Server + Web 到 Google Cloud Run    |
+| **Desktop Release** | `release.yml`     | push `v*` tag       | 跨平台打包桌面应用 + 创建 GitHub Release |
+| **TUI Release**     | `tui-release.yml` | push `tui-v*` tag   | 打包 TUI 单文件 + 创建 GitHub Release    |
 
 ---
 
@@ -90,12 +91,12 @@ gcloud artifacts repositories create bookmark \
 
 ## 3. 部署
 
-完成上述配置后，任何推送到 `master` 分支的提交都会自动触发部署工作流。Server 和 Client **并行部署**到 Cloud Run。
+完成上述配置后，任何推送到 `master` 分支的提交都会自动触发部署工作流。Server 和 Web **并行部署**到 Cloud Run。
 
 访问方式（同域名路径分发）：
 
 - `bookmark.example.com/api/*` → Server (Express API)
-- `bookmark.example.com/*` → Client (React SPA)
+- `bookmark.example.com/*` → Web (React SPA)
 
 > 同域名部署的好处：前端用相对路径 `/api/...` 即可请求后端，无需跨域 (CORS)。
 
@@ -117,7 +118,7 @@ HTTPS Proxy (bookmark-https-proxy)                 SSL 终止
     ▼
 URL Map (bookmark-url-map)                         路径匹配
     ├── /api/*  → server-backend → server-neg → Cloud Run: bookmark-server
-    └── /*      → client-backend → client-neg → Cloud Run: bookmark-client
+    └── /*      → web-backend → web-neg → Cloud Run: bookmark-web
 ```
 
 ### 资源依赖关系（创建从下往上，删除从上往下）
@@ -127,14 +128,14 @@ Static IP  ←──  Forwarding Rule  ←──  HTTPS Proxy
                                         ├── SSL Certificate
                                         └── URL Map
                                               ├── server-backend ← server-neg ← Cloud Run: server
-                                              └── client-backend ← client-neg ← Cloud Run: client
+                                              └── web-backend ← web-neg ← Cloud Run: client
 ```
 
 ### 详细步骤（推荐使用 Cloud Shell）
 
 ```bash
 # 1. 设置变量
-DOMAIN="bookmark.kang.icu"
+DOMAIN="bookmark.example.com"
 REGION="asia-east2"
 
 # 2. 预留静态 IP 地址
@@ -142,16 +143,16 @@ gcloud compute addresses create bookmark-lb-ip --global
 gcloud compute addresses describe bookmark-lb-ip --global --format="get(address)"
 # ⬆️ 记下这个 IP，稍后配置 DNS
 
-# 3. 创建两个 NEG（Server + Client）
+# 3. 创建两个 NEG（Server + Web）
 gcloud compute network-endpoint-groups create bookmark-server-neg \
     --region=$REGION \
     --network-endpoint-type=serverless \
     --cloud-run-service=bookmark-server
 
-gcloud compute network-endpoint-groups create bookmark-client-neg \
+gcloud compute network-endpoint-groups create bookmark-web-neg \
     --region=$REGION \
     --network-endpoint-type=serverless \
-    --cloud-run-service=bookmark-client
+    --cloud-run-service=bookmark-web
 
 # 4. 创建两个后端服务
 gcloud compute backend-services create bookmark-server-backend --global
@@ -160,20 +161,20 @@ gcloud compute backend-services add-backend bookmark-server-backend \
     --network-endpoint-group=bookmark-server-neg \
     --network-endpoint-group-region=$REGION
 
-gcloud compute backend-services create bookmark-client-backend --global
-gcloud compute backend-services add-backend bookmark-client-backend \
+gcloud compute backend-services create bookmark-web-backend --global
+gcloud compute backend-services add-backend bookmark-web-backend \
     --global \
-    --network-endpoint-group=bookmark-client-neg \
+    --network-endpoint-group=bookmark-web-neg \
     --network-endpoint-group-region=$REGION
 
 # 5. 创建 URL Map（路径分发规则）
-# 默认走 Client，/api/* 走 Server
+# 默认走 Web，/api/* 走 Server
 gcloud compute url-maps create bookmark-url-map \
-    --default-service bookmark-client-backend
+    --default-service bookmark-web-backend
 
 gcloud compute url-maps add-path-matcher bookmark-url-map \
     --path-matcher-name=bookmark-routes \
-    --default-service=bookmark-client-backend \
+    --default-service=bookmark-web-backend \
     --path-rules="/api/*=bookmark-server-backend"
 
 # 6. 创建 SSL 证书
@@ -225,25 +226,59 @@ git push origin v1.0.0
 
 ---
 
-## 6. 本地环境变量
+## 6. TUI Release
+
+### 触发方式
+
+```bash
+git tag tui-v1.0.0
+git push origin tui-v1.0.0
+```
+
+### 产物
+
+TUI 通过 esbuild 打包为单个 `.mjs` 文件（约 1.7MB），包含所有依赖。
+用户只需 `node bookmark-tui.mjs` 即可运行，无需安装 `node_modules`。
+
+| 文件               | 说明                    |
+| ------------------ | ----------------------- |
+| `bookmark-tui.mjs` | 打包后的单文件 CLI 程序 |
+| `.env.example`     | 环境配置模板            |
+
+Release 创建后用户下载两个文件，将 `.env.example` 重命名为 `.env` 并修改 `API_BASE` 即可使用。
+
+---
+
+## 7. 本地环境变量
+
+### Desktop
 
 ```bash
 cp packages/desktop/.env.example packages/desktop/.env
 # 编辑 VITE_API_BASE=http://localhost:3001
 ```
 
-> `.env` 已被 `.gitignore` 排除，不会提交到仓库。
-
 **优先级**：`VITE_API_BASE 环境变量` > `file:// 默认值` > `空（Vite dev proxy）`
+
+### TUI
+
+```bash
+cp packages/tui/.env.example packages/tui/.env
+# 编辑 API_BASE=http://localhost:3001
+```
+
+**优先级**：`.env 中的 API_BASE` > `默认值 http://localhost:3001`
+
+> `.env` 已被 `.gitignore` 排除，不会提交到仓库。
 
 ---
 
-## 7. 日志查看
+## 8. 日志查看
 
 在 Cloud Run 环境中，系统会自动捕获程序输出到 `stdout` 和 `stderr` 的所有内容。
 
 1. 进入 [Google Cloud Console](https://console.cloud.google.com/run)。
-2. 点击服务名称（`bookmark-server` 或 `bookmark-client`）。
+2. 点击服务名称（`bookmark-server` 或 `bookmark-web`）。
 3. 点击 **Logs (日志)** 标签页。
 
 > [!TIP]

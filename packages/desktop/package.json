@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@bookmark/shared": "*",
-    "@bookmark/ui": "*",
+    "@bookmark/common-ui": "*",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

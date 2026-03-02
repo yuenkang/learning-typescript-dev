@@ -5,11 +5,11 @@
 
 /* 📖 学习点：@source 指令
  * Tailwind CSS v4 默认只扫描当前项目目录下的文件来发现使用的类名。
- * 因为我们从 @bookmark/ui 包导入了组件，
- * 那些文件在 ../ui/src/ 下，Tailwind 默认不会扫描到。
- * 使用 @source 指令告诉 Tailwind 也要扫描 ui 的源码。
+ * 因为我们从 @bookmark/common-ui 包导入了组件，
+ * 那些文件在 ../common-ui/src/ 下，Tailwind 默认不会扫描到。
+ * 使用 @source 指令告诉 Tailwind 也要扫描 common-ui 的源码。
  */
-@source "../../ui/src";
+@source "../../common-ui/src";
 
 /* 📖 学习点：桌面端特有的全局样式 */
 body {

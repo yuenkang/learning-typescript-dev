@@ -5,7 +5,7 @@
 // 通过传入不同的 Props（args），观察组件在各种场景下的表现。
 
 import type { Meta, StoryObj } from "@storybook/react";
-import { BookmarkCard } from "@bookmark/ui";
+import { BookmarkCard } from "@bookmark/common-ui";
 import type { BookmarkWithTags } from "@bookmark/shared";
 
 // ============================================

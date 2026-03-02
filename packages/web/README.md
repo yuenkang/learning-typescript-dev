@@ -13,7 +13,7 @@
 
 ```bash
 # 在项目根目录运行
-npm run dev:client
+npm run dev:web
 ```
 
 前端将在 http://localhost:5173 启动。

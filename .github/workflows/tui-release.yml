@@ -1,0 +1,54 @@
+# ============================================
+# 📖 学习点：GitHub Actions CD — TUI 发布
+# ============================================
+# 📖 当推送 tui-v* 格式的 tag 时，自动打包 TUI
+# 并创建 GitHub Release，上传单文件 CLI 程序
+
+name: TUI Release
+
+# 📖 学习点：独立的 tag 命名空间
+# Desktop 用 v* tag，TUI 用 tui-v* tag，互不干扰
+on:
+  push:
+    tags:
+      - "tui-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 发布 TUI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      # 📖 学习点：esbuild 打包
+      # 将所有代码和依赖打包为单个 .mjs 文件
+      # 用户只需 node bookmark-tui.mjs 即可运行
+      - name: 打包 TUI
+        run: npm run build:tui
+
+      # 📖 学习点：从 tag 名提取版本号
+      # GITHUB_REF_NAME = "tui-v1.0.0"，去掉前缀得到 "1.0.0"
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "TUI ${{ github.ref_name }}"
+          files: |
+            packages/tui/dist/bookmark-tui.mjs
+            packages/tui/.env.example
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

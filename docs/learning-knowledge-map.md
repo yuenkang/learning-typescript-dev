@@ -12,8 +12,8 @@
 | ------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **interface** 接口  | 定义对象的形状，`?` 可选属性                                     | `shared/src/types.ts`                                                  |
 | **type** 类型别名   | 联合类型、交叉类型等复杂类型                                     | `shared/src/types.ts`                                                  |
-| **泛型 `<T>`**      | `ApiResponse<T>`、泛型函数 `request<T>()`                        | `shared/src/types.ts`、`client/src/api.ts`                             |
-| **工具类型**        | `Omit<T,K>`、`Partial<T>`、`Pick<T,K>`、`Record<K,V>`            | `shared/src/types.ts`、`client/src/api.ts`、`shared/src/validators.ts` |
+| **泛型 `<T>`**      | `ApiResponse<T>`、泛型函数 `request<T>()`                        | `shared/src/types.ts`、`web/src/api.ts`                             |
+| **工具类型**        | `Omit<T,K>`、`Partial<T>`、`Pick<T,K>`、`Record<K,V>`            | `shared/src/types.ts`、`web/src/api.ts`、`shared/src/validators.ts` |
 | **交叉类型 `&`**    | `BookmarkWithTags = Bookmark & { tags: Tag[] }`                  | `shared/src/types.ts`                                                  |
 | **字面量类型**      | `success: false`、字面量联合类型 `'development' \| 'production'` | `shared/src/types.ts`、`server/src/config.ts`                          |
 | **类型守卫**        | `instanceof`、`typeof`、`in`                                     | `server/src/middleware/errorHandler.ts`                                |
@@ -79,19 +79,19 @@
 
 | 知识点          | 说明                                             | 所在文件                                 |
 | --------------- | ------------------------------------------------ | ---------------------------------------- |
-| **函数组件**    | Props 接口、参数解构                             | `client/src/components/BookmarkCard.tsx` |
-| **Props 类型**  | `interface XxxProps`，回调函数类型               | `client/src/components/*.tsx`            |
-| **useState**    | 状态管理，泛型 `useState<T>()`                   | `client/src/App.tsx`                     |
-| **useEffect**   | 副作用、清理函数、依赖数组                       | `client/src/hooks/useDebounce.ts`        |
-| **useCallback** | 函数缓存，避免不必要渲染                         | `client/src/hooks/useBookmarks.ts`       |
-| **自定义 Hook** | `useBookmarks`、`useTags`、`useDebounce`         | `client/src/hooks/`                      |
-| **防抖优化**    | `useDebounce` Hook 减少 API 请求次数             | `client/src/hooks/useDebounce.ts`        |
-| **受控组件**    | 表单值由 state 控制                              | `client/src/components/BookmarkForm.tsx` |
-| **表单事件**    | `React.FormEvent`、`e.preventDefault()`          | `client/src/components/BookmarkForm.tsx` |
-| **条件渲染**    | 三元运算符、`&&` 短路                            | `client/src/App.tsx`                     |
-| **列表渲染**    | `.map()` + `key` 属性                            | `client/src/App.tsx`                     |
+| **函数组件**    | Props 接口、参数解构                             | `web/src/components/BookmarkCard.tsx` |
+| **Props 类型**  | `interface XxxProps`，回调函数类型               | `web/src/components/*.tsx`            |
+| **useState**    | 状态管理，泛型 `useState<T>()`                   | `web/src/App.tsx`                     |
+| **useEffect**   | 副作用、清理函数、依赖数组                       | `web/src/hooks/useDebounce.ts`        |
+| **useCallback** | 函数缓存，避免不必要渲染                         | `web/src/hooks/useBookmarks.ts`       |
+| **自定义 Hook** | `useBookmarks`、`useTags`、`useDebounce`         | `web/src/hooks/`                      |
+| **防抖优化**    | `useDebounce` Hook 减少 API 请求次数             | `web/src/hooks/useDebounce.ts`        |
+| **受控组件**    | 表单值由 state 控制                              | `web/src/components/BookmarkForm.tsx` |
+| **表单事件**    | `React.FormEvent`、`e.preventDefault()`          | `web/src/components/BookmarkForm.tsx` |
+| **条件渲染**    | 三元运算符、`&&` 短路                            | `web/src/App.tsx`                     |
+| **列表渲染**    | `.map()` + `key` 属性                            | `web/src/App.tsx`                     |
 | **关注点分离**  | Hook 管数据、组件管展示                          | 全前端                                   |
-| **不可变更新**  | `prev.map()`、`prev.filter()`、`[...prev, item]` | `client/src/hooks/useBookmarks.ts`       |
+| **不可变更新**  | `prev.map()`、`prev.filter()`、`[...prev, item]` | `web/src/hooks/useBookmarks.ts`       |
 
 ### ⬜ 待学
 
@@ -115,12 +115,12 @@
 
 | 知识点              | 说明                                  | 所在文件                   |
 | ------------------- | ------------------------------------- | -------------------------- |
-| **fetch API**       | 浏览器原生请求 API                    | `client/src/api.ts`        |
-| **泛型请求函数**    | `request<T>()` 统一类型安全的请求封装 | `client/src/api.ts`        |
-| **URLSearchParams** | 构建 URL 查询参数                     | `client/src/api.ts`        |
+| **fetch API**       | 浏览器原生请求 API                    | `web/src/api.ts`        |
+| **泛型请求函数**    | `request<T>()` 统一类型安全的请求封装 | `web/src/api.ts`        |
+| **URLSearchParams** | 构建 URL 查询参数                     | `web/src/api.ts`        |
 | **统一响应格式**    | `ApiResponse<T>` 前后端共享           | `shared/src/types.ts`      |
 | **运行时类型验证**  | 类型擦除概念、手动验证外部数据        | `shared/src/validators.ts` |
-| **JSON 序列化**     | `JSON.stringify()`、`response.json()` | `client/src/api.ts`        |
+| **JSON 序列化**     | `JSON.stringify()`、`response.json()` | `web/src/api.ts`        |
 
 ### ⬜ 待学
 
@@ -141,11 +141,11 @@
 | ----------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------- |
 | **npm workspaces**                  | monorepo 架构，多包管理                                                       | 根 `package.json`                     |
 | **tsconfig**                        | 编译选项、配置继承（extends）                                                 | `tsconfig.base.json`                  |
-| **Vite**                            | 前端开发服务器、热更新、生产构建                                              | `client/vite.config.ts`               |
+| **Vite**                            | 前端开发服务器、热更新、生产构建                                              | `web/vite.config.ts`               |
 | **tsx**                             | 直接运行 TS 文件 + watch 热重载                                               | `server/package.json`                 |
-| **ESLint**                          | 代码规范检查                                                                  | `client/eslint.config.js`             |
-| **Tailwind CSS**                    | 原子化 CSS 样式                                                               | `client/src/App.tsx`                  |
-| **Storybook**                       | 组件可视化工作台，独立展示/调试每个组件，通过 Stories 传入不同 Props 观察效果 | `client/src/components/*.stories.tsx` |
+| **ESLint**                          | 代码规范检查                                                                  | `web/eslint.config.js`             |
+| **Tailwind CSS**                    | 原子化 CSS 样式                                                               | `web/src/App.tsx`                  |
+| **Storybook**                       | 组件可视化工作台，独立展示/调试每个组件，通过 Stories 传入不同 Props 观察效果 | `web/src/components/*.stories.tsx` |
 | **React DevTools**                  | 浏览器插件，查看组件树、Props、State、Hooks 值                                | Chrome 扩展                           |
 | **package.json**                    | name、version、scripts、依赖管理                                              | `docs/package-json-guide.md`          |
 | **@types/\* 包**                    | 社区类型声明，为 JS 库提供类型                                                | `server/package.json`                 |

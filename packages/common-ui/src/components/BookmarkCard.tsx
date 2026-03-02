@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import type { BookmarkWithTags, Tag } from "@bookmark/shared";
-import * as api from "../api";
+import * as api from "@bookmark/api";
 
 // ============================================
 // 📖 TypeScript 学习笔记：Props 接口

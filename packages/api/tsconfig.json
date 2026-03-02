@@ -1,0 +1,10 @@
+{
+  // 📖 API 包的 TypeScript 配置
+  // 纯逻辑层，不需要 JSX 支持
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src"]
+}

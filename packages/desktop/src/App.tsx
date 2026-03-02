@@ -14,7 +14,7 @@ import { useState } from "react";
 import type { BookmarkWithTags } from "@bookmark/shared";
 
 // 📖 学习点：从共享 UI 包导入
-// 组件和 hooks 现在位于独立的 @bookmark/ui 包中，
+// 组件和 hooks 现在位于独立的 @bookmark/common-ui 包中，
 // client 和 desktop 都从这里导入，消除了互相依赖。
 import {
   useBookmarks,
@@ -22,7 +22,7 @@ import {
   useDebounce,
   BookmarkCard,
   BookmarkForm,
-} from "@bookmark/ui";
+} from "@bookmark/common-ui";
 
 function App() {
   // ---------- UI 状态（和 client 版相同）----------

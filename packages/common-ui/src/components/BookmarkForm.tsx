@@ -12,7 +12,7 @@ import type {
     Tag,
     CreateBookmarkRequest,
 } from "@bookmark/shared";
-import * as api from "../api";
+import * as api from "@bookmark/api";
 
 // ============================================
 // Props 类型定义

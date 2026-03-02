@@ -1,0 +1,14 @@
+{
+  // 📖 TUI 包的 TypeScript 配置
+  // 继承基础配置，目标为 Node.js 环境（和 server 类似）
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    // 📖 JSX 设置：ink 使用 React JSX 转换（和浏览器 React 一样）
+    "jsx": "react-jsx",
+    // 📖 Node.js 的模块解析，支持 .js 扩展名导入
+    "moduleResolution": "Node16"
+  },
+  "include": ["src", "../api/src/env.d.ts"]
+}

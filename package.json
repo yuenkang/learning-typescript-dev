@@ -7,10 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=packages/server & npm run dev --workspace=packages/client",
+    "dev": "npm run dev --workspace=packages/server & npm run dev --workspace=packages/web",
     "dev:server": "npm run dev --workspace=packages/server",
-    "dev:client": "npm run dev --workspace=packages/client",
+    "dev:web": "npm run dev --workspace=packages/web",
     "dev:desktop": "npm run dev --workspace=packages/desktop",
+    "dev:tui": "npm run dev --workspace=packages/tui",
+    "build:tui": "npm run build --workspace=packages/tui",
     "build:desktop": "npm run pack --workspace=packages/desktop",
     "dist:desktop": "npm run dist --workspace=packages/desktop"
   }

@@ -13,7 +13,7 @@
 
 import { useState } from "react";
 import type { BookmarkWithTags } from "@bookmark/shared";
-import { useBookmarks, useTags, useDebounce, BookmarkCard, BookmarkForm } from "@bookmark/ui";
+import { useBookmarks, useTags, useDebounce, BookmarkCard, BookmarkForm } from "@bookmark/common-ui";
 
 function App() {
   // ---------- UI 状态 ----------

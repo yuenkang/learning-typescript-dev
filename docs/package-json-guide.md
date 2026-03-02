@@ -20,10 +20,10 @@
 
   "scripts": {
     // & 符号：同时运行多个命令（并行）
-    "dev": "npm run dev --workspace=packages/server & npm run dev --workspace=packages/client",
+    "dev": "npm run dev --workspace=packages/server & npm run dev --workspace=packages/web",
     // --workspace= 指定在哪个子包中运行命令
     "dev:server": "npm run dev --workspace=packages/server",
-    "dev:client": "npm run dev --workspace=packages/client"
+    "dev:web": "npm run dev --workspace=packages/web"
   }
 }
 ```
@@ -100,11 +100,11 @@
 
 ---
 
-## `packages/client/package.json`
+## `packages/web/package.json`
 
 ```jsonc
 {
-  "name": "@bookmark/client",
+  "name": "@bookmark/web",
   "version": "1.0.0",
   "private": true,
   "type": "module",

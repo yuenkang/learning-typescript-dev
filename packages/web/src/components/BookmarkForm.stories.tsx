@@ -5,7 +5,7 @@
 // 通过 editingBookmark 是否为 null 来区分。
 
 import type { Meta, StoryObj } from "@storybook/react";
-import { BookmarkForm } from "@bookmark/ui";
+import { BookmarkForm } from "@bookmark/common-ui";
 import type { CreateBookmarkRequest, Tag } from "@bookmark/shared";
 
 const meta: Meta<typeof BookmarkForm> = {
