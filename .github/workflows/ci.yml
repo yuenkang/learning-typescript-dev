@@ -41,21 +41,24 @@ jobs:
       - name: 类型检查 - shared
         run: npx tsc --noEmit -p packages/shared/tsconfig.json
 
-      - name: 类型检查 - ui
-        run: npx tsc --noEmit -p packages/ui/tsconfig.json
+      - name: 类型检查 - common-ui
+        run: npx tsc --noEmit -p packages/common-ui/tsconfig.json
 
       - name: 类型检查 - server
         run: npx tsc --noEmit -p packages/server/tsconfig.json
 
-      - name: 类型检查 - client
-        run: npx tsc --noEmit -p packages/client/tsconfig.app.json
+      - name: 类型检查 - web
+        run: npx tsc --noEmit -p packages/web/tsconfig.app.json
 
       - name: 类型检查 - desktop
         run: npx tsc --noEmit -p packages/desktop/tsconfig.app.json
 
       # 📖 构建验证 — 确保 Vite 能正常构建生产版本
-      - name: 构建 client
-        run: npm run build --workspace=packages/client
+      - name: 构建 web
+        run: npm run build --workspace=packages/web
 
       - name: 构建 desktop (Vite only)
         run: npm run build --workspace=packages/desktop
+
+      - name: 构建 tui
+        run: npm run build:tui

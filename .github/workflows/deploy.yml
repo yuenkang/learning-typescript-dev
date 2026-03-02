@@ -71,7 +71,7 @@ jobs:
   # ============================================
   # 部署前端 Client
   # ============================================
-  deploy-client:
+  deploy-web:
     name: 部署 Client → Cloud Run
     runs-on: ubuntu-latest
     # 📖 同域名路径分发：Server 和 Client 可以并行部署
@@ -94,20 +94,20 @@ jobs:
       - name: 构建 Client 镜像
         run: |
           docker build \
-            -f packages/client/Dockerfile \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }} \
-            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:latest \
+            -f packages/web/Dockerfile \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/web:${{ github.sha }} \
+            -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/web:latest \
             .
 
       - name: 推送镜像
         run: |
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }}
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:latest
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/web:${{ github.sha }}
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/web:latest
 
       - name: 部署到 Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: bookmark-client
+          service: bookmark-web
           region: ${{ env.REGION }}
-          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/client:${{ github.sha }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/bookmark/web:${{ github.sha }}
           flags: --allow-unauthenticated
